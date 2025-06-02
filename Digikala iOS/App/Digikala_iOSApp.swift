@@ -11,7 +11,7 @@ import SwiftUI
 struct Digikala_iOSApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
 }
