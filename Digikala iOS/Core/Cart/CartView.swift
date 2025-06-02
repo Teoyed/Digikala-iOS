@@ -25,83 +25,112 @@ struct CartView: View {
     var totalPrice: Double {
         cartItems.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
     }
-
+    
     var body: some View {
         NavigationStack {
             VStack {
                 if cartItems.isEmpty {
                     Spacer()
-                    Text("Your cart is empty 🛒")
-                        .foregroundColor(.gray)
-                        .font(.headline)
+                    VStack(spacing: 12) {
+                        Image(systemName: "cart")
+                            .font(.system(size: 60))
+                            .foregroundColor(.gray)
+                        Text("Your cart is empty")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                    }
                     Spacer()
                 } else {
-                    List {
-                        ForEach($cartItems) { $item in
-                            HStack(spacing: 16) {
-                                Image(systemName: item.imageName)
-                                    .resizable()
-                                    .frame(width: 40, height: 40)
-                                    .padding(8)
-                                    .background(Color.gray.opacity(0.1))
-                                    .clipShape(Circle())
-                                
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(item.title)
-                                        .font(.headline)
-                                    Text(String(format: "$%.2f", item.price))
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                }
-                                
-                                Spacer()
-                                
-                                HStack(spacing: 10) {
-                                    Button {
-                                        if item.quantity > 1 {
-                                            item.quantity -= 1
-                                        }
-                                    } label: {
-                                        Image(systemName: "minus.circle")
-                                            .foregroundColor(.red)
-                                    }
-                                    
-                                    Text("\(item.quantity)")
-                                        .font(.subheadline)
-                                        .frame(width: 30)
-                                    
-                                    Button {
-                                        item.quantity += 1
-                                    } label: {
-                                        Image(systemName: "plus.circle")
-                                            .foregroundColor(.green)
-                                    }
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            ForEach($cartItems) { $item in
+                                CartItemCard(item: $item) {
+                                    cartItems.removeAll { $0.id == item.id }
                                 }
                             }
-                            .padding(.vertical, 8)
-                        }
-                        .onDelete { indexSet in
-                            cartItems.remove(atOffsets: indexSet)
-                        }
-                    }
-                    .listStyle(.plain)
 
-                    // Total price section
-                    HStack {
-                        Text("Total:")
-                            .font(.headline)
-                        Spacer()
-                        Text(String(format: "$%.2f", totalPrice))
-                            .font(.title3)
-                            .bold()
+                            Divider()
+                            
+                            HStack {
+                                Text("Total:")
+                                    .font(.headline)
+                                Spacer()
+                                Text(String(format: "$%.2f", totalPrice))
+                                    .font(.title3)
+                                    .bold()
+                            }
+                            .padding(.horizontal)
+                        }
+                        .padding()
                     }
-                    .padding()
-                    .background(Color.white)
-                    .shadow(radius: 2)
                 }
             }
             .navigationTitle("Shopping Cart")
         }
+    }
+}
+
+struct CartItemCard: View {
+    @Binding var item: CartItem
+    var onDelete: () -> Void
+
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: item.imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 50, height: 50)
+                .padding(10)
+                .background(Color.gray.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(.headline)
+                Text(String(format: "$%.2f", item.price))
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+
+            Spacer()
+
+            VStack(spacing: 8) {
+                HStack(spacing: 10) {
+                    Button {
+                        if item.quantity > 1 {
+                            item.quantity -= 1
+                        }
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                            .foregroundColor(.red)
+                            .font(.title3)
+                    }
+
+                    Text("\(item.quantity)")
+                        .font(.subheadline)
+                        .frame(width: 30)
+
+                    Button {
+                        item.quantity += 1
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.title3)
+                    }
+                }
+
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(14)
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
 
