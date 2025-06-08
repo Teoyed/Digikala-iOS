@@ -98,7 +98,7 @@ struct CartItemRow: View {
     
     var body: some View {
         HStack {
-            Image(item.product.imageName)
+            Image(item.product.imageNames[0])
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 60, height: 60)

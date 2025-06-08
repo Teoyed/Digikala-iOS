@@ -102,7 +102,7 @@ struct ProductCard: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            Image(product.imageName)
+            Image(product.imageNames[0])
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 150, height: 150)

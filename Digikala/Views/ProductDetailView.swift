@@ -4,6 +4,7 @@ struct ProductDetailView: View {
     let product: Product
     @State private var quantity = 1
     @State private var showingAddToCartAlert = false
+    @State private var selectedImageIndex = 0
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var cartManager: CartManager
@@ -11,12 +12,37 @@ struct ProductDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Product Image
-                Image(product.imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 300)
-                    .clipped()
+                // Product Image Gallery
+                VStack(spacing: 12) {
+                    // Main Image
+                    Image(product.imageNames[selectedImageIndex])
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 300)
+                        .clipped()
+                    
+                    // Thumbnail Gallery
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(0..<product.imageNames.count, id: \.self) { index in
+                                Button(action: {
+                                    selectedImageIndex = index
+                                }) {
+                                    Image(product.imageNames[index])
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 60, height: 60)
+                                        .cornerRadius(8)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(selectedImageIndex == index ? Color.blue : Color.clear, lineWidth: 2)
+                                        )
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
                 
                 // Product Details
                 VStack(alignment: .leading, spacing: 16) {
