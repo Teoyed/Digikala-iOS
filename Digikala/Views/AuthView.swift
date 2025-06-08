@@ -7,6 +7,8 @@ struct AuthView: View {
     @State private var phone = ""
     @State private var password = ""
     @State private var name = ""
+    @State private var showingError = false
+    @State private var errorMessage = ""
     
     var body: some View {
         NavigationView {
@@ -90,19 +92,34 @@ struct AuthView: View {
             .navigationBarItems(trailing: Button("Cancel") {
                 dismiss()
             })
+            .alert("Error", isPresented: $showingError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
         }
     }
     
     private func authenticate() {
         if isSignUp {
-            // For prototype, just print success for signup
-            print("Mock Signup Successful! Name: \(name), Phone: \(phone), Password: \(password)")
-            authManager.login(phone: phone, password: password)
+            // Handle signup
+            if authManager.signup(name: name, phone: phone, password: password) {
+                print("Signup Successful! Name: \(name), Phone: \(phone)")
+                dismiss()
+            } else {
+                errorMessage = "A user with this phone number already exists."
+                showingError = true
+            }
         } else {
-            // For prototype, call local login logic
+            // Handle login
             authManager.login(phone: phone, password: password)
+            if authManager.isAuthenticated {
+                dismiss()
+            } else {
+                errorMessage = "Invalid credentials. Please try again."
+                showingError = true
+            }
         }
-        dismiss()
     }
 }
 
