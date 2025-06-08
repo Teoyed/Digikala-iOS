@@ -5,7 +5,7 @@ struct Product: Identifiable, Codable {
     let name: String
     let price: String
     let manufacturer: String
-    let imageURL: String
+    let imageName: String
     let category: String
     let description: String
     
@@ -14,7 +14,7 @@ struct Product: Identifiable, Codable {
         case name
         case price
         case manufacturer
-        case imageURL = "image_url"
+        case imageName
         case category
         case description
     }

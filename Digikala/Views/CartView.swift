@@ -7,55 +7,46 @@ struct CartView: View {
     
     var body: some View {
         NavigationView {
-            Group {
-                if cartManager.isLoading {
-                    ProgressView()
-                } else if let error = cartManager.error {
-                    VStack {
-                        Text("Error loading cart")
-                            .font(.headline)
-                        Text(error)
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                    }
-                } else if let cart = cartManager.cart, !cart.items.isEmpty {
-                    List {
-                        ForEach(cart.items) { item in
-                            CartItemRow(item: item)
+            List {
+                ForEach(cartManager.cart.items) { item in
+                    CartItemRow(item: item)
+                }
+                .onDelete { indexSet in
+                    Task {
+                        for index in indexSet {
+                            let itemId = cartManager.cart.items[index].id
+                            await cartManager.removeFromCart(itemId: itemId)
                         }
-                        .onDelete { indexSet in
-                            Task {
-                                for index in indexSet {
-                                    let itemId = cart.items[index].id
-                                    await cartManager.removeFromCart(itemId: itemId)
-                                }
-                            }
+                    }
+                }
+                
+                if !cartManager.cart.items.isEmpty { // Only show this section if there are items
+                    Section {
+                        HStack {
+                            Text("Total")
+                                .font(.headline)
+                            Spacer()
+                            Text("$\(String(format: "%.2f", cartManager.cart.total))")
+                                .font(.headline)
+                                .foregroundColor(.blue)
                         }
                         
-                        Section {
-                            HStack {
-                                Text("Total")
-                                    .font(.headline)
-                                Spacer()
-                                Text("$\(String(format: "%.2f", cart.total))")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                            }
-                            
-                            Button {
-                                showingCheckoutAlert = true
-                            } label: {
-                                Text("Place Order")
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                            }
+                        Button {
+                            showingCheckoutAlert = true
+                        } label: {
+                            Text("Place Order")
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
                         }
                     }
-                } else {
+                }
+            }
+            .overlay(Group {
+                if cartManager.cart.items.isEmpty {
                     VStack(spacing: 20) {
                         Image(systemName: "cart")
                             .font(.system(size: 60))
@@ -65,7 +56,7 @@ struct CartView: View {
                             .foregroundColor(.gray)
                     }
                 }
-            }
+            })
             .navigationTitle("Cart")
             .task {
                 await cartManager.fetchCart()
@@ -107,16 +98,11 @@ struct CartItemRow: View {
     
     var body: some View {
         HStack {
-            AsyncImage(url: URL(string: item.product.imageURL)) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-            }
-            .frame(width: 60, height: 60)
-            .cornerRadius(8)
+            Image(item.product.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 60, height: 60)
+                .cornerRadius(8)
             
             VStack(alignment: .leading) {
                 Text(item.product.name)
@@ -124,7 +110,7 @@ struct CartItemRow: View {
                 Text(item.product.manufacturer)
                     .font(.subheadline)
                     .foregroundColor(.gray)
-                Text("$\(String(format: "%.2f", item.product.price))")
+                Text("$\(item.product.price)")
                     .font(.subheadline)
                     .fontWeight(.semibold)
             }

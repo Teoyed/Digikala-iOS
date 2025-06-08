@@ -13,15 +13,6 @@ struct User: Codable {
         var state: String
         var zipCode: String
         var isDefault: Bool
-        
-        enum CodingKeys: String, CodingKey {
-            case id
-            case street
-            case city
-            case state
-            case zipCode = "zip_code"
-            case isDefault = "is_default"
-        }
     }
 }
 

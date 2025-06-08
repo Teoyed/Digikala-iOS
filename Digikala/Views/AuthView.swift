@@ -7,8 +7,6 @@ struct AuthView: View {
     @State private var phone = ""
     @State private var password = ""
     @State private var name = ""
-    @State private var errorMessage: String?
-    @State private var isLoading = false
     
     var body: some View {
         NavigationView {
@@ -56,28 +54,15 @@ struct AuthView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Error Message
-                    if let error = errorMessage {
-                        Text(error)
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                            .padding(.horizontal)
-                    }
-                    
                     // Action Button
                     Button {
                         Task {
-                            await authenticate()
+                            authenticate()
                         }
                     } label: {
                         HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Text(isSignUp ? "Create Account" : "Sign In")
-                                    .fontWeight(.semibold)
-                            }
+                            Text(isSignUp ? "Create Account" : "Sign In")
+                                .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -85,14 +70,13 @@ struct AuthView: View {
                         .foregroundColor(.white)
                         .cornerRadius(12)
                     }
-                    .disabled(phone.isEmpty || password.isEmpty || (isSignUp && name.isEmpty) || isLoading)
+                    .disabled(phone.isEmpty || password.isEmpty || (isSignUp && name.isEmpty))
                     .padding(.horizontal)
                     
                     // Toggle Sign In/Sign Up
                     Button {
                         withAnimation {
                             isSignUp.toggle()
-                            errorMessage = nil
                         }
                     } label: {
                         Text(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
@@ -109,26 +93,16 @@ struct AuthView: View {
         }
     }
     
-    private func authenticate() async {
-        isLoading = true
-        errorMessage = nil
-        
-        do {
-            if isSignUp {
-                let credentials = SignupCredentials(name: name, phone: phone, password: password)
-                let (token, userId) = try await APIClient.shared.signup(credentials: credentials)
-                authManager.login(token: token, userId: userId)
-            } else {
-                let credentials = LoginCredentials(phone: phone, password: password)
-                let (token, userId) = try await APIClient.shared.login(credentials: credentials)
-                authManager.login(token: token, userId: userId)
-            }
-            dismiss()
-        } catch {
-            errorMessage = error.localizedDescription
+    private func authenticate() {
+        if isSignUp {
+            // For prototype, just print success for signup
+            print("Mock Signup Successful! Name: \(name), Phone: \(phone), Password: \(password)")
+            authManager.login(phone: phone, password: password)
+        } else {
+            // For prototype, call local login logic
+            authManager.login(phone: phone, password: password)
         }
-        
-        isLoading = false
+        dismiss()
     }
 }
 

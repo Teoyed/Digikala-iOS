@@ -12,16 +12,11 @@ struct ProductDetailView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Product Image
-                AsyncImage(url: URL(string: product.imageURL)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                }
-                .frame(height: 300)
-                .clipped()
+                Image(product.imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: 300)
+                    .clipped()
                 
                 // Product Details
                 VStack(alignment: .leading, spacing: 16) {
@@ -39,7 +34,7 @@ struct ProductDetailView: View {
                         
                         Spacer()
                         
-                        Text("$\(String(format: "%.2f", product.price))")
+                        Text("$\(product.price)")
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.blue)
@@ -106,13 +101,9 @@ struct ProductDetailView: View {
     
     private func addToCart() {
         Task {
-            guard let userId = authManager.userId else {
-                // Handle case where user is not logged in
-                print("User not logged in. Cannot add to cart.")
-                // Optionally show an alert to the user
-                return
-            }
-            await cartManager.addToCart(productId: product.id, quantity: quantity, userId: userId)
+            // For prototype, no need to check userId from AuthManager.
+            // A mock userId can be passed as CartManager now handles data locally.
+            await cartManager.addToCart(productId: product.id, quantity: quantity, userId: 1) // Using a mock userId of 1
             showingAddToCartAlert = true
         }
     }

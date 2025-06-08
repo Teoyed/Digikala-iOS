@@ -49,8 +49,6 @@ struct CategoryProductListView: View {
     let category: String
     @Binding var selectedProduct: Product?
     @State private var products: [Product] = []
-    @State private var isLoading = false
-    @State private var errorMessage: String?
     @State private var searchText = ""
     
     var filteredProducts: [Product] {
@@ -63,39 +61,23 @@ struct CategoryProductListView: View {
     
     var body: some View {
         VStack {
-            if isLoading {
-                ProgressView()
-            } else if let error = errorMessage {
-                Text(error)
-                    .foregroundColor(.red)
-            } else {
-                List(filteredProducts) { product in
-                    Button {
-                        selectedProduct = product
-                    } label: {
-                        ProductRow(product: product)
-                    }
+            List(filteredProducts) { product in
+                Button {
+                    selectedProduct = product
+                } label: {
+                    ProductRow(product: product)
                 }
             }
         }
         .navigationTitle(category)
         .searchable(text: $searchText, prompt: "Search products")
         .task {
-            await loadProducts()
+            loadProducts()
         }
     }
     
-    private func loadProducts() async {
-        isLoading = true
-        errorMessage = nil
-        
-        do {
-            products = try await APIClient.shared.fetchProducts(category: category)
-        } catch {
-            errorMessage = "Failed to load products: \(error.localizedDescription)"
-        }
-        
-        isLoading = false
+    private func loadProducts() {
+        products = MockData.getProducts(forCategory: category)
     }
 }
 
@@ -104,16 +86,11 @@ struct ProductRow: View {
     
     var body: some View {
         HStack {
-            AsyncImage(url: URL(string: product.imageURL)) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-            }
-            .frame(width: 60, height: 60)
-            .cornerRadius(8)
+            Image(product.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 60, height: 60)
+                .cornerRadius(8)
             
             VStack(alignment: .leading) {
                 Text(product.name)
@@ -121,7 +98,7 @@ struct ProductRow: View {
                 Text(product.manufacturer)
                     .font(.subheadline)
                     .foregroundColor(.gray)
-                Text("$\(String(format: "%.2f", product.price))")
+                Text("$\(product.price)")
                     .font(.subheadline)
                     .fontWeight(.semibold)
             }
