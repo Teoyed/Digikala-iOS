@@ -6,7 +6,7 @@ struct ProfileView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingEditProfile = false
-    @State private var showingLoginSheet = false
+    @State private var showingAuthSheet = false
     
     var body: some View {
         NavigationView {
@@ -70,7 +70,7 @@ struct ProfileView: View {
                             .font(.title2)
                             .foregroundColor(.gray)
                         Button("Login / Sign Up") {
-                            showingLoginSheet = true
+                            showingAuthSheet = true
                         }
                         .buttonStyle(.borderedProminent)
                     }
@@ -82,8 +82,8 @@ struct ProfileView: View {
                     await loadProfile()
                 }
             }
-            .sheet(isPresented: $showingLoginSheet) {
-                LoginView()
+            .sheet(isPresented: $showingAuthSheet) {
+                AuthView()
             }
             .sheet(isPresented: $showingEditProfile) {
                 if let user = user {
@@ -104,77 +104,6 @@ struct ProfileView: View {
         }
         
         isLoading = false
-    }
-}
-
-struct LoginView: View {
-    @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var authManager: AuthManager
-    @State private var isSignUp = false
-    @State private var phone = ""
-    @State private var password = ""
-    @State private var name = ""
-    @State private var errorMessage: String?
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                if isSignUp {
-                    Section {
-                        TextField("Name", text: $name)
-                    }
-                }
-                
-                Section {
-                    TextField("Phone", text: $phone)
-                        .keyboardType(.phonePad)
-                    SecureField("Password", text: $password)
-                }
-                
-                if let error = errorMessage {
-                    Section {
-                        Text(error)
-                            .foregroundColor(.red)
-                    }
-                }
-                
-                Section {
-                    Button(isSignUp ? "Sign Up" : "Login") {
-                        Task {
-                            await authenticate()
-                        }
-                    }
-                    .disabled(phone.isEmpty || password.isEmpty || (isSignUp && name.isEmpty))
-                }
-                
-                Section {
-                    Button(isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up") {
-                        isSignUp.toggle()
-                    }
-                }
-            }
-            .navigationTitle(isSignUp ? "Sign Up" : "Login")
-            .navigationBarItems(trailing: Button("Cancel") {
-                dismiss()
-            })
-        }
-    }
-    
-    private func authenticate() async {
-        do {
-            if isSignUp {
-                let credentials = SignupCredentials(name: name, phone: phone, password: password)
-                let token = try await APIClient.shared.signup(credentials: credentials)
-                authManager.login(token: token)
-            } else {
-                let credentials = LoginCredentials(phone: phone, password: password)
-                let token = try await APIClient.shared.login(credentials: credentials)
-                authManager.login(token: token)
-            }
-            dismiss()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
     }
 }
 
