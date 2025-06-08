@@ -11,7 +11,7 @@ import SwiftUI
 struct DataBase_Project_testApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
     }
 }
