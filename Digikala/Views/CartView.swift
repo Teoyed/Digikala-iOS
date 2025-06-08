@@ -117,16 +117,22 @@ struct CartItemRow: View {
             
             Spacer()
             
-            Stepper("\(quantity)", value: $quantity, in: 1...10)
-                .labelsHidden()
-                .onChange(of: quantity) { _, newValue in
-                    Task {
-                        // Check if quantity has actually changed to avoid unnecessary API calls
-                        if newValue != item.quantity {
-                            await cartManager.updateQuantity(itemId: item.id, quantity: newValue)
+            HStack(spacing: 12) {
+                Text("\(quantity)")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                    .frame(minWidth: 30)
+                Stepper("", value: $quantity, in: 1...10)
+                    .labelsHidden()
+                    .onChange(of: quantity) { _, newValue in
+                        Task {
+                            // Check if quantity has actually changed to avoid unnecessary API calls
+                            if newValue != item.quantity {
+                                await cartManager.updateQuantity(itemId: item.id, quantity: newValue)
+                            }
                         }
                     }
-                }
+            }
         }
         .padding(.vertical, 4)
     }

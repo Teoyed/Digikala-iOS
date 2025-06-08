@@ -59,8 +59,14 @@ struct ProductDetailView: View {
                             Text("Quantity")
                                 .font(.headline)
                             Spacer()
-                            Stepper("\(quantity)", value: $quantity, in: 1...10)
-                                .labelsHidden()
+                            HStack(spacing: 12) {
+                                Text("\(quantity)")
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                                    .frame(minWidth: 30)
+                                Stepper("", value: $quantity, in: 1...10)
+                                    .labelsHidden()
+                            }
                         }
                         
                         Button(action: addToCart) {
