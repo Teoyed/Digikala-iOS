@@ -1,24 +1,35 @@
 import SwiftUI
 
 struct CartView: View {
-    @State private var cart: Cart?
-    @State private var isLoading = false
-    @State private var errorMessage: String?
-    @State private var showingCheckoutAlert = false
+    @EnvironmentObject var cartManager: CartManager
     @EnvironmentObject var authManager: AuthManager
+    @State private var showingCheckoutAlert = false
     
     var body: some View {
         NavigationView {
             Group {
-                if isLoading {
+                if cartManager.isLoading {
                     ProgressView()
-                } else if let error = errorMessage {
-                    Text(error)
-                        .foregroundColor(.red)
-                } else if let cart = cart, !cart.items.isEmpty {
+                } else if let error = cartManager.error {
+                    VStack {
+                        Text("Error loading cart")
+                            .font(.headline)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.red)
+                    }
+                } else if let cart = cartManager.cart, !cart.items.isEmpty {
                     List {
                         ForEach(cart.items) { item in
                             CartItemRow(item: item)
+                        }
+                        .onDelete { indexSet in
+                            Task {
+                                for index in indexSet {
+                                    let itemId = cart.items[index].id
+                                    await cartManager.removeFromCart(itemId: itemId)
+                                }
+                            }
                         }
                         
                         Section {
@@ -28,15 +39,18 @@ struct CartView: View {
                                 Spacer()
                                 Text("$\(String(format: "%.2f", cart.total))")
                                     .font(.headline)
+                                    .foregroundColor(.blue)
                             }
                             
-                            Button(action: checkout) {
+                            Button {
+                                showingCheckoutAlert = true
+                            } label: {
                                 Text("Place Order")
                                     .fontWeight(.semibold)
-                                    .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
                                     .background(Color.blue)
+                                    .foregroundColor(.white)
                                     .cornerRadius(10)
                             }
                         }
@@ -54,7 +68,10 @@ struct CartView: View {
             }
             .navigationTitle("Cart")
             .task {
-                await loadCart()
+                await cartManager.fetchCart()
+            }
+            .refreshable {
+                await cartManager.fetchCart()
             }
             .alert("Checkout", isPresented: $showingCheckoutAlert) {
                 Button("OK", role: .cancel) { }
@@ -66,19 +83,6 @@ struct CartView: View {
                 }
             }
         }
-    }
-    
-    private func loadCart() async {
-        isLoading = true
-        errorMessage = nil
-        
-        do {
-            cart = try await APIClient.shared.fetchCart()
-        } catch {
-            errorMessage = "Failed to load cart: \(error.localizedDescription)"
-        }
-        
-        isLoading = false
     }
     
     private func checkout() {
@@ -94,6 +98,7 @@ struct CartView: View {
 struct CartItemRow: View {
     let item: CartItem
     @State private var quantity: Int
+    @EnvironmentObject var cartManager: CartManager
     
     init(item: CartItem) {
         self.item = item
@@ -127,11 +132,39 @@ struct CartItemRow: View {
             Spacer()
             
             Stepper("\(quantity)", value: $quantity, in: 1...10)
-                .onChange(of: quantity) { oldValue, newValue in
-                    // In a real app, this would update the cart via API
-                    print("Updated quantity to \(newValue)")
+                .labelsHidden()
+                .onChange(of: quantity) { _, newValue in
+                    Task {
+                        // Check if quantity has actually changed to avoid unnecessary API calls
+                        if newValue != item.quantity {
+                            await cartManager.updateQuantity(itemId: item.id, quantity: newValue)
+                        }
+                    }
                 }
         }
         .padding(.vertical, 4)
     }
+}
+
+struct CheckoutView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var cartManager = CartManager.shared
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                Text("Checkout functionality will be implemented here")
+                    .font(.headline)
+                    .foregroundColor(.gray)
+            }
+            .navigationTitle("Checkout")
+            .navigationBarItems(trailing: Button("Done") {
+                dismiss()
+            })
+        }
+    }
+}
+
+#Preview {
+    CartView()
 } 

@@ -12,6 +12,8 @@ struct DataBase_Project_testApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .environmentObject(AuthManager())
+                .environmentObject(CartManager.shared)
         }
     }
 }

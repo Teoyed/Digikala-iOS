@@ -116,12 +116,12 @@ struct AuthView: View {
         do {
             if isSignUp {
                 let credentials = SignupCredentials(name: name, phone: phone, password: password)
-                let token = try await APIClient.shared.signup(credentials: credentials)
-                authManager.login(token: token)
+                let (token, userId) = try await APIClient.shared.signup(credentials: credentials)
+                authManager.login(token: token, userId: userId)
             } else {
                 let credentials = LoginCredentials(phone: phone, password: password)
-                let token = try await APIClient.shared.login(credentials: credentials)
-                authManager.login(token: token)
+                let (token, userId) = try await APIClient.shared.login(credentials: credentials)
+                authManager.login(token: token, userId: userId)
             }
             dismiss()
         } catch {

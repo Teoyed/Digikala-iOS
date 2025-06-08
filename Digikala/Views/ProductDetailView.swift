@@ -6,6 +6,7 @@ struct ProductDetailView: View {
     @State private var showingAddToCartAlert = false
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var cartManager: CartManager
     
     var body: some View {
         ScrollView {
@@ -105,13 +106,14 @@ struct ProductDetailView: View {
     
     private func addToCart() {
         Task {
-            do {
-                try await APIClient.shared.addToCart(productId: product.id, quantity: quantity)
-                showingAddToCartAlert = true
-            } catch {
-                // Handle error
-                print("Failed to add to cart: \(error)")
+            guard let userId = authManager.userId else {
+                // Handle case where user is not logged in
+                print("User not logged in. Cannot add to cart.")
+                // Optionally show an alert to the user
+                return
             }
+            await cartManager.addToCart(productId: product.id, quantity: quantity, userId: userId)
+            showingAddToCartAlert = true
         }
     }
 } 
