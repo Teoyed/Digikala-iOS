@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		78DA5B582DF4E8A10095F97B /* DataBase-Project-test */ = {
+		78DA5B582DF4E8A10095F97B /* Digikala iOS App */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 78DA5B7A2DF4E8A40095F97B /* Build configuration list for PBXNativeTarget "DataBase-Project-test" */;
+			buildConfigurationList = 78DA5B7A2DF4E8A40095F97B /* Build configuration list for PBXNativeTarget "Digikala iOS App" */;
 			buildPhases = (
 				78DA5B552DF4E8A10095F97B /* Sources */,
 				78DA5B562DF4E8A10095F97B /* Frameworks */,
@@ -63,7 +63,7 @@
 			fileSystemSynchronizedGroups = (
 				78DA5B5B2DF4E8A10095F97B /* Digikala */,
 			);
-			name = "DataBase-Project-test";
+			name = "Digikala iOS App";
 			packageProductDependencies = (
 			);
 			productName = "DataBase-Project-test";
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 78DA5B542DF4E8A10095F97B /* Build configuration list for PBXProject "DataBase-Project-test" */;
+			buildConfigurationList = 78DA5B542DF4E8A10095F97B /* Build configuration list for PBXProject "Digikala iOS App" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				78DA5B582DF4E8A10095F97B /* DataBase-Project-test */,
+				78DA5B582DF4E8A10095F97B /* Digikala iOS App */,
 			);
 		};
 /* End PBXProject section */
@@ -305,7 +305,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		78DA5B542DF4E8A10095F97B /* Build configuration list for PBXProject "DataBase-Project-test" */ = {
+		78DA5B542DF4E8A10095F97B /* Build configuration list for PBXProject "Digikala iOS App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				78DA5B782DF4E8A40095F97B /* Debug */,
@@ -314,7 +314,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		78DA5B7A2DF4E8A40095F97B /* Build configuration list for PBXNativeTarget "DataBase-Project-test" */ = {
+		78DA5B7A2DF4E8A40095F97B /* Build configuration list for PBXNativeTarget "Digikala iOS App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				78DA5B7B2DF4E8A40095F97B /* Debug */,
