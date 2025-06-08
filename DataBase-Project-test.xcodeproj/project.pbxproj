@@ -11,9 +11,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		78DA5B5B2DF4E8A10095F97B /* DataBase-Project-test */ = {
+		78DA5B5B2DF4E8A10095F97B /* Digikala */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "DataBase-Project-test";
+			path = Digikala;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		78DA5B502DF4E8A10095F97B = {
 			isa = PBXGroup;
 			children = (
-				78DA5B5B2DF4E8A10095F97B /* DataBase-Project-test */,
+				78DA5B5B2DF4E8A10095F97B /* Digikala */,
 				78DA5B5A2DF4E8A10095F97B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,7 +61,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				78DA5B5B2DF4E8A10095F97B /* DataBase-Project-test */,
+				78DA5B5B2DF4E8A10095F97B /* Digikala */,
 			);
 			name = "DataBase-Project-test";
 			packageProductDependencies = (
