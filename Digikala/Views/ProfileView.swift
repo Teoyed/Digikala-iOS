@@ -1,241 +1,127 @@
 import SwiftUI
 
+// MARK: - Main Profile View
 struct ProfileView: View {
     @EnvironmentObject var authManager: AuthManager
     @State private var showingEditProfile = false
     @State private var showingAuthSheet = false
-    @State private var selectedTab = 0
     
     var body: some View {
         NavigationView {
             Group {
                 if authManager.isAuthenticated, let user = authManager.currentUser {
-                    ScrollView {
-                        VStack(spacing: 25) {
-                            // Profile Header
-                            ProfileHeaderView(user: user)
-                            
-                            // Quick Stats
-                            HStack(spacing: 20) {
-                                StatCard(title: "Orders", value: "12", icon: "shippingbox.fill")
-                                StatCard(title: "Wishlist", value: "5", icon: "heart.fill")
-                                StatCard(title: "Reviews", value: "8", icon: "star.fill")
-                            }
-                            .padding(.horizontal)
-                            
-                            // Profile Sections
-                            VStack(spacing: 20) {
-                                ProfileSection(title: "Personal Information") {
-                                    VStack(spacing: 15) {
-                                        ProfileInfoRow(label: "Name", value: user.name, icon: "person.fill")
-                                        ProfileInfoRow(label: "Phone", value: user.phone, icon: "phone.fill")
-                                        ProfileInfoRow(label: "Email", value: "user@example.com", icon: "envelope.fill")
-                                    }
-                                }
-                                
-                                ProfileSection(title: "Addresses") {
-                                    VStack(spacing: 12) {
-                                        ForEach(user.addresses) { address in
-                                            AddressCard(address: address)
-                                        }
-                                        
-                                        Button(action: {}) {
-                                            Label("Add New Address", systemImage: "plus.circle.fill")
-                                                .font(.headline)
-                                                .foregroundColor(.blue)
-                                                .frame(maxWidth: .infinity)
-                                                .padding()
-                                                .background(Color.blue.opacity(0.1))
-                                                .cornerRadius(12)
-                                        }
-                                    }
-                                }
-                                
-                                ProfileSection(title: "Settings") {
-                                    VStack(spacing: 0) {
-                                        SettingsRow(title: "Notifications", icon: "bell.fill")
-                                        SettingsRow(title: "Privacy", icon: "lock.fill")
-                                        SettingsRow(title: "Help & Support", icon: "questionmark.circle.fill")
-                                        SettingsRow(title: "About", icon: "info.circle.fill")
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                            // Action Buttons
-                            VStack(spacing: 15) {
-                                Button(action: { showingEditProfile = true }) {
-                                    Label("Edit Profile", systemImage: "pencil")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(15)
-                                        .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
-                                }
-                                
-                                Button(action: {
-                                    withAnimation {
-                                        authManager.logout()
-                                    }
-                                }) {
-                                    Label("Logout", systemImage: "power.circle.fill")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.red.opacity(0.1))
-                                        .foregroundColor(.red)
-                                        .cornerRadius(15)
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.bottom, 20)
-                        }
-                        .padding(.vertical, 20)
-                    }
-                    .navigationTitle("Profile")
-                    .background(Color(.systemGroupedBackground))
+                    AuthenticatedProfileView(
+                        user: user,
+                        showingEditProfile: $showingEditProfile,
+                        showingAuthSheet: $showingAuthSheet
+                    )
                 } else {
-                    WelcomeView(showingAuthSheet: $showingAuthSheet)
+                    UnauthenticatedProfileView(showingAuthSheet: $showingAuthSheet)
                 }
             }
-            .navigationTitle("Profile")
             .sheet(isPresented: $showingAuthSheet) {
                 AuthView()
-            }
-            .sheet(isPresented: $showingEditProfile) {
-                if let user = authManager.currentUser {
-                    EditProfileView(user: user) { updatedUser in
-                        authManager.currentUser = updatedUser
-                    }
-                }
             }
         }
     }
 }
 
-// MARK: - Supporting Views
-
-struct ProfileHeaderView: View {
+// MARK: - Authenticated Profile View
+private struct AuthenticatedProfileView: View {
     let user: User
+    @Binding var showingEditProfile: Bool
+    @Binding var showingAuthSheet: Bool
+    @EnvironmentObject var authManager: AuthManager
     
     var body: some View {
-        VStack(spacing: 15) {
-            // Profile Image
-            ZStack {
-                Circle()
-                    .fill(Color.blue.opacity(0.1))
-                    .frame(width: 120, height: 120)
+        ScrollView {
+            VStack(spacing: 25) {
+                ProfileHeaderView(user: user)
                 
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 100, height: 100)
-                    .foregroundColor(.blue)
-            }
-            .shadow(color: .blue.opacity(0.2), radius: 10, x: 0, y: 5)
-            
-            // User Info
-            VStack(spacing: 8) {
-                Text(user.name)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                StatsSection()
                 
-                Text(user.phone)
-                    .font(.headline)
-                    .foregroundColor(.secondary)
+                ProfileSectionsView(
+                    user: user,
+                    showingEditProfile: $showingEditProfile
+                )
+                
+                SignOutButton()
             }
+            .padding(.vertical)
         }
-        .padding(.vertical, 20)
-        .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle("Profile")
+    }
+}
+
+// MARK: - Stats Section
+private struct StatsSection: View {
+    var body: some View {
+        HStack(spacing: 20) {
+            StatCard(title: "Orders", value: "12", icon: "shippingbox.fill")
+            StatCard(title: "Wishlist", value: "5", icon: "heart.fill")
+            StatCard(title: "Reviews", value: "8", icon: "star.fill")
+        }
         .padding(.horizontal)
     }
 }
 
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
+// MARK: - Profile Sections
+private struct ProfileSectionsView: View {
+    let user: User
+    @Binding var showingEditProfile: Bool
     
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(.blue)
-            
-            Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.white)
-        .cornerRadius(15)
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-    }
-}
-
-struct ProfileSection<Content: View>: View {
-    let title: String
-    let content: Content
-    
-    init(title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Text(title)
-                .font(.title2)
-                .fontWeight(.bold)
-                .padding(.horizontal)
-            
-            content
-                .padding()
-                .background(Color.white)
-                .cornerRadius(15)
-                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        VStack(spacing: 20) {
+            PersonalInfoSection(user: user)
+            AddressesSection(addresses: user.addresses)
         }
     }
 }
 
-struct ProfileInfoRow: View {
-    let label: String
-    let value: String
-    let icon: String
+// MARK: - Personal Info Section
+private struct PersonalInfoSection: View {
+    let user: User
     
     var body: some View {
-        HStack(spacing: 15) {
-            Image(systemName: icon)
-                .foregroundColor(.blue)
-                .frame(width: 24)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(label)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                Text(value)
-                    .font(.body)
-                    .foregroundColor(.primary)
+        ProfileSection(title: "Personal Information") {
+            VStack(spacing: 15) {
+                ProfileInfoRow(label: "Name", value: user.name, icon: "person.fill")
+                ProfileInfoRow(label: "Phone", value: user.phone, icon: "phone.fill")
             }
-            
-            Spacer()
         }
     }
 }
 
+// MARK: - Addresses Section
+private struct AddressesSection: View {
+    let addresses: [User.Address]
+    
+    var body: some View {
+        ProfileSection(title: "Addresses") {
+            if addresses.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "mappin.slash")
+                        .font(.system(size: 30))
+                        .foregroundColor(.gray)
+                    Text("No addresses added yet")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+            } else {
+                VStack(spacing: 15) {
+                    ForEach(addresses) { address in
+                        AddressCard(address: address)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Address Card
 struct AddressCard: View {
     let address: User.Address
     
@@ -274,35 +160,176 @@ struct AddressCard: View {
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.05))
+        .background(Color(.tertiarySystemGroupedBackground))
         .cornerRadius(12)
     }
 }
 
-struct SettingsRow: View {
+// MARK: - Sign Out Button
+private struct SignOutButton: View {
+    @EnvironmentObject var authManager: AuthManager
+    
+    var body: some View {
+        Button(action: {
+            authManager.logout()
+        }) {
+            Text("Sign Out")
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.red)
+                .cornerRadius(10)
+        }
+        .padding(.horizontal)
+    }
+}
+
+// MARK: - Unauthenticated Profile View
+private struct UnauthenticatedProfileView: View {
+    @Binding var showingAuthSheet: Bool
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "person.circle.fill")
+                .font(.system(size: 80))
+                .foregroundColor(.blue)
+            
+            Text("Sign in to view your profile")
+                .font(.title2)
+                .fontWeight(.medium)
+            
+            Button(action: { showingAuthSheet = true }) {
+                Text("Sign In")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+            .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground))
+    }
+}
+
+// MARK: - Supporting Views
+struct ProfileHeaderView: View {
+    let user: User
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        VStack(spacing: 15) {
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "person.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .foregroundColor(.blue)
+            }
+            .shadow(color: .blue.opacity(0.2), radius: 10, x: 0, y: 5)
+            
+            VStack(spacing: 8) {
+                Text(user.name)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                Text(user.phone)
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(20)
+        .shadow(color: Color(.systemGray4).opacity(0.5), radius: 10, x: 0, y: 5)
+        .padding(.horizontal)
+    }
+}
+
+struct StatCard: View {
     let title: String
+    let value: String
     let icon: String
     
     var body: some View {
-        HStack {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(.blue)
+            
+            Text(value)
+                .font(.title3)
+                .fontWeight(.bold)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(15)
+        .shadow(color: Color(.systemGray4).opacity(0.5), radius: 5, x: 0, y: 2)
+    }
+}
+
+struct ProfileSection<Content: View>: View {
+    let title: String
+    let content: Content
+    
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding(.horizontal)
+            
+            content
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(15)
+                .shadow(color: Color(.systemGray4).opacity(0.5), radius: 5, x: 0, y: 2)
+        }
+    }
+}
+
+struct ProfileInfoRow: View {
+    let label: String
+    let value: String
+    let icon: String
+    
+    var body: some View {
+        HStack(spacing: 15) {
             Image(systemName: icon)
                 .foregroundColor(.blue)
                 .frame(width: 24)
             
-            Text(title)
-                .font(.body)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                if !value.isEmpty {
+                    Text(value)
+                        .font(.body)
+                        .foregroundColor(.primary)
+                }
+            }
             
             Spacer()
-            
-            Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
-                .font(.caption)
-        }
-        .padding()
-        .background(Color.white)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            // Handle tap
         }
     }
 }
@@ -395,3 +422,4 @@ struct EditProfileView: View {
         }
     }
 } 
+
